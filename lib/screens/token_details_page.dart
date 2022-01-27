@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:plumber_app/components/color.dart';
 import 'package:http/http.dart' as http;
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:provider/provider.dart';
 // import 'package:plumber_app/provider/dialog/dialogs.dart';
@@ -62,37 +63,36 @@ class _TokenDetailsPgaeState extends State<TokenDetailsPgae> {
 
     var url =
         Uri.parse('http://49.0.41.34/AKG/PLUMBER/plumber_token_details.php');
-    final response = await http
-        .post(
-          url,
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "user_id": userDetails.userId //'1101'
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    var result = json.decode(response.body);
-    print(result);
-    // print(result['current month total Token point']);
-    setState(() {
-      currentMonthpoint = result['current month total Token point'];
-      previousMonthpoint = result['previous month total Token point'];
-      currentYears = result['current years total Token point'];
-      previousYears = result['previous years total Token point'];
-      print('$previousYears');
-      isloading = false;
-    });
-
-    // if (result['success'] == 1) {
-    //   //dialaogsFucntion.msgDialog(context, 'ok');
-    //   print(result);
-    // } else if (result['success'] == 0) {
-    //   // dialaogsFucntion.msgDialog(context, result['msg']);
-    //   print(result);
-    // }
+    try {
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": userDetails.userId //'1101'
+            },
+          )
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+            print(error);
+          });
+      var result = json.decode(response.body);
+      print(result);
+      // print(result['current month total Token point']);
+      setState(() {
+        currentMonthpoint = result['current month total Token point'];
+        previousMonthpoint = result['previous month total Token point'];
+        currentYears = result['current years total Token point'];
+        previousYears = result['previous years total Token point'];
+        print('$previousYears');
+        isloading = false;
+      });
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      Navigator.pop(context);
+      print(e);
+    }
   }
 
   @override

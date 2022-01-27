@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:plumber_app/components/color.dart';
 import 'package:http/http.dart' as http;
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/dialogs.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:plumber_app/screens/dashboard_menu.dart';
@@ -30,8 +31,10 @@ class _LoginPageState extends State<LoginPage> {
   bool passVissible = true;
   bool isLoading = false;
   String uname;
+  var porpic;
 
   Future dataSubmit() async {
+    CustomFunctions.waitDialog(context);
     print('un :$uname');
     //  onLoading();
     final UserDetails userDetails =
@@ -39,95 +42,86 @@ class _LoginPageState extends State<LoginPage> {
     final DialaogsFucntion dialaogsFucntion =
         Provider.of<DialaogsFucntion>(context, listen: false);
 
-    // Response response;
-    // var dio = Dio();
-    // var params = {
-    //   'username': uname == '' ? usernamecontroller.text : '$uname',
-    //   'password': passwordcontroller.text
-    // };
-
-    // response = await dio
-    //     .post('http://49.0.41.34/AKG/PLUMBER/login.php',
-    //         queryParameters: params,
-    //         options: Options(headers: {
-    //           HttpHeaders.contentTypeHeader: "application/json",
-    //         }))
-    //     .timeout(Duration(seconds: 25))
-    //     .catchError((error) {
-    //   print(error);
-    // });
-
-    // var useerData = json.decode(response.toString());
-    // print('feedback:  $useerData');
-
-    // response = await dio.post(
-    //   'http://49.0.41.34/AKG/PLUMBER/login.php',
-    //   data: {
-    //     'username': uname == '' ? usernamecontroller.text : '$uname',
-    //     'password': passwordcontroller.text
-    //   },
-    //   onSendProgress: (int sent, int total) {
-    //     print('$sent $total');
-    //   },
-    // );
-
-    // response = await dio.post('http://49.0.41.34/AKG/PLUMBER/login.php', data: {
-    //   "username": uname == '' ? usernamecontroller.text : '$uname',
-    //   "password": passwordcontroller.text
-    // });
-    // print('feedback:  $response');
-
     var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/login.php');
     var useerData;
 
-    // var client = http.Client();
-    // try {
-    //   var uriResponse = await client
-    //       .post(Uri.parse('http://49.0.41.34/AKG/PLUMBER/login.php'), body: {
-    //     "username": uname == '' ? usernamecontroller.text : '$uname',
-    //     "password": passwordcontroller.text
-    //   });
-    //   useerData = json.decode(uriResponse.body);
-    //   print(useerData);
-    // } finally {
-    //   client.close();
-    // }
+    try {
+      final response = await http
+          .post(
+            url,
+            // encoding: Encoding.getByName("utf-8"),
+            body: {
+              "username": uname == '' ? usernamecontroller.text : '$uname',
+              "password": passwordcontroller.text
+            },
+          )
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+            print(error);
+          });
+      useerData = json.decode(response.body);
+      print(response);
 
-    final response = await http
-        .post(
-          url,
-          // encoding: Encoding.getByName("utf-8"),
-          body: {
-            "username": uname == '' ? usernamecontroller.text : '$uname',
-            "password": passwordcontroller.text
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    useerData = json.decode(response.body);
-    print(response);
+      if (useerData['success'] == 1) {
+        userDetails.dataUserID(useerData['user_id']);
+        userDetails.dataUserName(useerData['Person name']);
+        userDetails.dataPhoneNumber(useerData['user_id']);
+        userDetails.dataAuthCode(useerData['auth code']);
+        // print(userDetails.userId);
 
-    if (useerData['success'] == 1) {
-      userDetails.dataUserID(useerData['user_id']);
-      userDetails.dataUserName(useerData['Person name']);
-      userDetails.dataPhoneNumber(useerData['user_id']);
-      userDetails.dataAuthCode(useerData['auth code']);
-      // print(userDetails.userId);
-      Navigator.pop(context);
-      var result = await Connectivity().checkConnectivity();
-      if (result == ConnectivityResult.none) {
-        print('no net');
-        dialaogsFucntion.noInternet(context);
-      } else {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => Dashboard()));
+        Navigator.pop(context);
+        var result = await Connectivity().checkConnectivity();
+        if (result == ConnectivityResult.none) {
+          print('no net');
+          dialaogsFucntion.noInternet(context);
+        } else {
+          Navigator.pop(context);
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => Dashboard()));
+        }
+
+        print('ok');
+      } else if (useerData['success'] == 0) {
+        Navigator.pop(context);
+        dialaogsFucntion.msgDialog(context, useerData['msg']);
+
+        //Navigator.push(context, MaterialPageRoute(builder: (_) => LoginPage()));
       }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
 
-      print('ok');
-    } else if (useerData['success'] == 0) {
-      Navigator.pop(context);
-      dialaogsFucntion.msgDialog(context, useerData['msg']);
+      print(e);
+    }
+  }
+
+  Future getProPic() async {
+    final UserDetails userDetails =
+        Provider.of<UserDetails>(context, listen: false);
+    // final DialaogsFucntion dialaogsFucntion =
+    //     Provider.of<DialaogsFucntion>(context, listen: false);image_show
+    //
+    try {
+      var url = Uri.parse(
+          'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}');
+      final response = await http
+          .get(url)
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+        print(error);
+      });
+      setState(() {
+        porpic = json.decode(response.body);
+        userDetails.dataImgLink(porpic);
+        print(porpic);
+      });
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+
+      print(e);
     }
   }
 
@@ -262,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                                   Icons.phone_android,
                                   color: stella_red,
                                 ),
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.visiblePassword,
                                 textAlignVertical: TextAlignVertical.center,
                                 decoration: BoxDecoration(
                                     color: Colors.white,
@@ -312,7 +306,6 @@ class _LoginPageState extends State<LoginPage> {
                                 val1 = false;
                               });
                           },
-                          autofocus: true,
                           prefix: Icon(
                             Icons.lock,
                             color: stella_red,
@@ -334,7 +327,7 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.black,
                             iconSize: 18,
                           ),
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.visiblePassword,
                           textAlignVertical: TextAlignVertical.center,
                           decoration: BoxDecoration(
                               color: Colors.white,
@@ -377,7 +370,6 @@ class _LoginPageState extends State<LoginPage> {
                                 print('no');
                               } else {
                                 dataSubmit();
-                                saveData();
                               }
                             }
                           },

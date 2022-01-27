@@ -11,6 +11,7 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="plumber_app"
         android:usesCleartextTraffic="true"
+        requestLegacyExternalStorage="true">
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

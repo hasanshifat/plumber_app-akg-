@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:plumber_app/components/color.dart';
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -84,44 +85,52 @@ class _TokenHistoryState extends State<TokenHistory> {
     // final DialaogsFucntion dialaogsFucntion =
     //     Provider.of<DialaogsFucntion>(context, listen: false);
     var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/token_filter.php');
-    final response = await http
-        .post(
-          url,
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "from_date": fromDate,
-            "to_date": toDate,
-            "user_id": '1101'//userDetails.userId, //'1101'
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    var result = json.decode(response.body);
-    print(result);
-    List r = result['transaction history'];
-    // print(result['current month total Token point']);
-    if (result != null) {
-      setState(() {
-        isloading = false;
-      });
-      r.forEach((element) {
+    try {
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "from_date": fromDate,
+              "to_date": toDate,
+              "user_id": userDetails.userId, //'1101'
+            },
+          )
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+            print(error);
+          });
+      var result = json.decode(response.body);
+      print(result);
+      List r = result['transaction history'];
+      // print(result['current month total Token point']);
+      if (result != null) {
         setState(() {
-          list.add(TokenHistoryClass(
-            transactionid: element['TRANSACTION_ID'],
-            tokenid: element['TOKEN_ID'],
-            tokenpoints: element['TOKEN_POINTS'],
-            productcategory: element['PRODUCT_CATEGORY'],
-            date: element['CREATION_DATE'],
-            time: element['TIME'],
-          ));
+          isloading = false;
         });
-      });
-    } else {
-      setState(() {
-        isloading = false;
-      });
+        r.forEach((element) {
+          setState(() {
+            list.add(TokenHistoryClass(
+              transactionid: element['TRANSACTION_ID'],
+              tokenid: element['TOKEN_ID'],
+              tokenpoints: element['TOKEN_POINTS'],
+              productcategory: element['PRODUCT_CATEGORY'],
+              date: element['CREATION_DATE'],
+              time: element['TIME'],
+            ));
+          });
+        });
+      } else {
+        setState(() {
+          isloading = false;
+        });
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      Navigator.pop(context);
+      print(e);
     }
 
     // if (result['success'] == 1) {
@@ -402,338 +411,6 @@ class _TokenHistoryState extends State<TokenHistory> {
                                 ]),
                           ],
                         );
-                        // Column(
-                        //   crossAxisAlignment: CrossAxisAlignment.start,
-                        //   children: [
-                        //     Text(
-                        //       'পণ্য তালিকা : ${list[index].productcategory}',
-                        //       style: TextStyle(color: stella_red, fontSize: 25),
-                        //     ),
-                        //     Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.baseline,
-                        //       textBaseline: TextBaseline.alphabetic,
-                        //       children: [
-                        //         Column(
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               'লেনদেন নাম্বার',
-                        //             ),
-
-                        //             // Text(
-                        //             //   'লেনদেন নাম্বার \t\t\nতৈরির তারিখ \t\t\nতৈরির সময় \t\t\nটোকেন আইডি\t\t\nটোকেন পয়েন্ট',
-                        //             // ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Column(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             // Text(
-                        //             //   ':\t\t\n:\t\t\n:\t\t\n:\t\t\n: ',
-                        //             // ),
-                        //             Text(
-                        //               ' : ',
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Expanded(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             verticalDirection: VerticalDirection.down,
-                        //             crossAxisAlignment:
-                        //                 CrossAxisAlignment.start,
-                        //             children: [
-                        //               // Text(
-                        //               //   '${list[index].transactionid}\t\t\n${list[index].date}\t\t\n${list[index].time}\t\t\n${list[index].tokenid}\t\t\n${list[index].tokenpoints}',
-                        //               // ),
-                        //               Text(
-                        //                 '${list[index].transactionid}',
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.baseline,
-                        //       textBaseline: TextBaseline.alphabetic,
-                        //       children: [
-                        //         Column(
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               'তৈরির তারিখ',
-                        //             ),
-
-                        //             // Text(
-                        //             //   'লেনদেন নাম্বার \t\t\nতৈরির তারিখ \t\t\nতৈরির সময় \t\t\nটোকেন আইডি\t\t\nটোকেন পয়েন্ট',
-                        //             // ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Column(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             // Text(
-                        //             //   ':\t\t\n:\t\t\n:\t\t\n:\t\t\n: ',
-                        //             // ),
-                        //             Text(
-                        //               ' : ',
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Expanded(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             verticalDirection: VerticalDirection.down,
-                        //             crossAxisAlignment:
-                        //                 CrossAxisAlignment.start,
-                        //             children: [
-                        //               // Text(
-                        //               //   '${list[index].transactionid}\t\t\n${list[index].date}\t\t\n${list[index].time}\t\t\n${list[index].tokenid}\t\t\n${list[index].tokenpoints}',
-                        //               // ),
-
-                        //               Text(
-                        //                 '${list[index].date}',
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.baseline,
-                        //       textBaseline: TextBaseline.alphabetic,
-                        //       children: [
-                        //         Column(
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               'তৈরির সময়',
-                        //             ),
-
-                        //             // Text(
-                        //             //   'লেনদেন নাম্বার \t\t\nতৈরির তারিখ \t\t\nতৈরির সময় \t\t\nটোকেন আইডি\t\t\nটোকেন পয়েন্ট',
-                        //             // ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Column(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             // Text(
-                        //             //   ':\t\t\n:\t\t\n:\t\t\n:\t\t\n: ',
-                        //             // ),
-                        //             Text(
-                        //               ' : ',
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Expanded(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             verticalDirection: VerticalDirection.down,
-                        //             crossAxisAlignment:
-                        //                 CrossAxisAlignment.start,
-                        //             children: [
-                        //               // Text(
-                        //               //   '${list[index].transactionid}\t\t\n${list[index].date}\t\t\n${list[index].time}\t\t\n${list[index].tokenid}\t\t\n${list[index].tokenpoints}',
-                        //               // ),
-                        //               Text(
-                        //                 '${list[index].time}',
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.baseline,
-                        //       textBaseline: TextBaseline.alphabetic,
-                        //       children: [
-                        //         Column(
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               'টোকেন আইডি',
-                        //             ),
-
-                        //             // Text(
-                        //             //   'লেনদেন নাম্বার \t\t\nতৈরির তারিখ \t\t\nতৈরির সময় \t\t\nটোকেন আইডি\t\t\nটোকেন পয়েন্ট',
-                        //             // ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Column(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             // Text(
-                        //             //   ':\t\t\n:\t\t\n:\t\t\n:\t\t\n: ',
-                        //             // ),
-                        //             Text(
-                        //               ' : ',
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Expanded(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             verticalDirection: VerticalDirection.down,
-                        //             crossAxisAlignment:
-                        //                 CrossAxisAlignment.start,
-                        //             children: [
-                        //               // Text(
-                        //               //   '${list[index].transactionid}\t\t\n${list[index].date}\t\t\n${list[index].time}\t\t\n${list[index].tokenid}\t\t\n${list[index].tokenpoints}',
-                        //               // ),
-
-                        //               Text(
-                        //                 '${list[index].tokenid}',
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.baseline,
-                        //       textBaseline: TextBaseline.alphabetic,
-                        //       children: [
-                        //         Column(
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceBetween,
-                        //           children: [
-                        //             Text(
-                        //               'টোকেন পয়েন্ট',
-                        //             ),
-
-                        //             // Text(
-                        //             //   'লেনদেন নাম্বার \t\t\nতৈরির তারিখ \t\t\nতৈরির সময় \t\t\nটোকেন আইডি\t\t\nটোকেন পয়েন্ট',
-                        //             // ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Column(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           verticalDirection: VerticalDirection.down,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             // Text(
-                        //             //   ':\t\t\n:\t\t\n:\t\t\n:\t\t\n: ',
-                        //             // ),
-                        //             Text(
-                        //               ' : ',
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         SizedBox(
-                        //           width: 5,
-                        //         ),
-                        //         Expanded(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             verticalDirection: VerticalDirection.down,
-                        //             crossAxisAlignment:
-                        //                 CrossAxisAlignment.start,
-                        //             children: [
-                        //               // Text(
-                        //               //   '${list[index].transactionid}\t\t\n${list[index].date}\t\t\n${list[index].time}\t\t\n${list[index].tokenid}\t\t\n${list[index].tokenpoints}',
-                        //               // ),
-                        //               Text(
-                        //                 '${list[index].tokenpoints}',
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-
-                        //     // Row(
-                        //     //   children: [
-                        //     //     Column(
-                        //     //       crossAxisAlignment: CrossAxisAlignment.start,
-                        //     //       children: [
-                        //     //         Text(
-                        //     //             'লেনদেন নাম্বার : ${list[index].transactionid}'),
-                        //     //         Text('তৈরির তারিখ : ${list[index].date}'),
-                        //     //         Text('তৈরির সময় : ${list[index].time}'),
-                        //     //         Text('টোকেন আইডি : ${list[index].tokenid}'),
-                        //     //         Text(
-                        //     //             'টোকেন পয়েন্ট : ${list[index].tokenpoints}'),
-                        //     //       ],
-                        //     //     ),
-                        //     //     // Column(
-                        //     //     //   crossAxisAlignment: CrossAxisAlignment.start,
-                        //     //     //   children: [
-                        //     //     //     Text(list[index].time),
-                        //     //     //     Text(list[index].tokenid),
-                        //     //     //     Text(list[index].tokenpoints),
-                        //     //     //   ],
-                        //     //     // )
-                        //     //   ],
-                        //     // ),
-                        //     Divider()
-                        //   ],
-                        // );
                       },
                     ))
             ],

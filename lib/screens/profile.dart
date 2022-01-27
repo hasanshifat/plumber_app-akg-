@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plumber_app/components/color.dart';
 import 'package:http/http.dart' as http;
+import 'package:plumber_app/components/custom_btn.dart';
+import 'package:plumber_app/components/custom_btn_round.dart';
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/dialogs.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +24,10 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    userDetailsFunction();
-    getProPic();
 
     setState(() {
+      userDetailsFunction();
+      getProPic();
       isloading = true;
     });
   }
@@ -64,195 +67,70 @@ class _ProfilePageState extends State<ProfilePage> {
     // final DialaogsFucntion dialaogsFucntion =
     //     Provider.of<DialaogsFucntion>(context, listen: false);
     var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/plumber_details.php');
-    final response = await http
-        .post(
-          url,
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "user_id": '1101' // userDetails.userId //'1101'
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    var result = json.decode(response.body);
-    print(result);
-    profileList = [];
+    try {
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": userDetails.userId //'1101'
+            },
+          )
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+            print(error);
+          });
+      var result = json.decode(response.body);
+      print(result);
+      profileList = [];
 
-    if (result['plumber details'] != null) {
-      setState(() {
-        List l = result['plumber details'];
-        l.forEach((element) {
-          profileList.add(ProfileDetails(
-              regID: element['REG_ID'],
-              uid: element['USER_ID'],
-              name: element['NAME'],
-              presentAddress: element['PRESENT_ADRESS'],
-              permanetAddress: element['PERMANENT_ADRESS'],
-              cellNo: element['CELL_NO'],
-              emergencyContact: element['EMERGENCY_CONTARACT_NO'],
-              nid: element['NID_NO'],
-              education: element['EDUCATION'],
-              workLocation: element['WORK_LOCATION'],
-              yearsOfExp: element['YEARS_OF_EXEPERIENCE'],
-              nameOfSpouse: element['NMAE_OF_SPOUSE'],
-              marraigeDay: element['MARRIAGE_DAY_F'],
-              noOfChild: element['NO_OF_CHILD'],
-              dob: element['DOB_F']));
+      if (result['plumber details'] != null) {
+        setState(() {
+          List l = result['plumber details'];
+          l.forEach((element) {
+            profileList.add(ProfileDetails(
+                regID: element['REG_ID'],
+                uid: element['USER_ID'],
+                name: element['NAME'],
+                presentAddress: element['PRESENT_ADRESS'],
+                permanetAddress: element['PERMANENT_ADRESS'],
+                cellNo: element['CELL_NO'],
+                emergencyContact: element['EMERGENCY_CONTARACT_NO'],
+                nid: element['NID_NO'],
+                education: element['EDUCATION'],
+                workLocation: element['WORK_LOCATION'],
+                yearsOfExp: element['YEARS_OF_EXEPERIENCE'],
+                nameOfSpouse: element['NMAE_OF_SPOUSE'],
+                marraigeDay: element['MARRIAGE_DAY_F'],
+                noOfChild: element['NO_OF_CHILD'],
+                dob: element['DOB_F']));
+          });
+          isloading = false;
         });
-        isloading = false;
-      });
-    } else {}
-  }
-
-  Future uploadPic() async {
-    final UserDetails userDetails =
-        Provider.of<UserDetails>(context, listen: false);
-    // final DialaogsFucntion dialaogsFucntion =
-    //     Provider.of<DialaogsFucntion>(context, listen: false);
-    var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/image_upload.php');
-    final response = await http
-        .post(
-          url,
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "user_id": '1101', //userDetails.userId //'1101'
-            "image": base64image
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    result = json.decode(response.body);
-    if (result != null) {
-      setState(() {
-        profilepic =
-            'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
-      });
-      print('ff $result');
-      print('updated');
-    } else
-      print('not updated');
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      Navigator.pop(context);
+      print(e);
+    }
   }
 
   Future getProPic() async {
     final UserDetails userDetails =
         Provider.of<UserDetails>(context, listen: false);
-    setState(() {
-      profilepic =
-          'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
-    });
-  }
-
-  Future update() async {
-    final UserDetails userDetails =
-        Provider.of<UserDetails>(context, listen: false);
-    // final DialaogsFucntion dialaogsFucntion =
-    //     Provider.of<DialaogsFucntion>(context, listen: false);
-    var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/registration.php');
-    final response = await http
-        .post(
-          Uri.parse('http://49.0.41.34/AKG/PLUMBER/registration.php'),
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "user_id": '1101', //userDetails.userId, //'1101',
-            "name": name.text,
-            "phone_no": '01712132313',
-            "DOB": dobdate,
-            "emgency_contract_no": ergncyMobileNum.text,
-            "nid": nid.text,
-            "present_address": presentAddress.text,
-            "permanent_address": permanentAddress.text,
-            "work_location": workarea.text,
-            "years_of_exepeience": expYear.text,
-            "name_of_the_spouse": spousename.text,
-            "no_of_child": chilldrens.text,
-            "marriage_day": mrrgdate,
-            "education": education.text,
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    result = json.decode(response.body);
-    print('feedback: $result');
-    if (result['success'] == 1) {
+    try {
       setState(() {
-        isloading = true;
+        profilepic =
+            'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
       });
-      userDetailsFunction();
-    }
-    // if (result['success'] == 1) {
-    //  // print(userDetails.userId);
-
-    //   // Navigator.pop(context);
-    //   var result = await Connectivity().checkConnectivity();
-    //   if (result == ConnectivityResult.none) {
-    //     print('no net');
-    //     // dialaogsFucntion.noInternet(context);
-    //   } else {
-    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => Dashboard()));
-    //   }
-
-    //   print('ok');
-    // }
-  }
-
-  documentBottomSheet() async {
-    showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.grey[300],
-        isScrollControlled: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-        ),
-        builder: (BuildContext context) {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                IconButton(
-                  onPressed: () {
-                    pickImage(ImageSource.camera);
-                  },
-                  icon: Icon(
-                    Icons.photo_camera,
-                    color: Colors.black,
-                  ),
-                  iconSize: 40,
-                ),
-                IconButton(
-                  onPressed: () {
-                    pickImage(ImageSource.gallery);
-                  },
-                  icon: Icon(Icons.photo, color: Colors.black),
-                  iconSize: 40,
-                ),
-              ],
-            ),
-          );
-        });
-  }
-
-  Future pickImage(ImageSource source) async {
-    final selectedImage = await ImagePicker.pickImage(
-        source: source,
-        imageQuality: 20,
-        preferredCameraDevice: CameraDevice.front);
-    print(selectedImage);
-    if (selectedImage != null) {
-      setState(() {
-        imageFile = File(selectedImage.path);
-
-        base64image = base64Encode(imageFile.readAsBytesSync());
-        uploadPic();
-        Navigator.pop(context);
-      });
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      Navigator.pop(context);
+      print(e);
     }
   }
 
@@ -315,356 +193,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  bottomsheetFunction() {
-    Size size = MediaQuery.of(context).size;
-    final DialaogsFucntion dialaogsFucntion =
-        Provider.of<DialaogsFucntion>(context, listen: false);
-    profileList.forEach((element) {
-      setState(() {
-        name.text = element.name;
-        dobdate = element.dob;
-        presentAddress.text = element.presentAddress;
-        permanentAddress.text = element.permanetAddress;
-        ergncyMobileNum.text = element.emergencyContact;
-        nid.text = element.nid;
-        education.text = element.education;
-        workarea.text = element.workLocation;
-        expYear.text = element.yearsOfExp;
-        spousename.text = element.nameOfSpouse;
-        mrrgdate = element.marraigeDay;
-        chilldrens.text = element.noOfChild;
-      });
-    });
-    showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-        ),
-        builder: (BuildContext context) {
-          return StatefulBuilder(builder: (BuildContext context,
-              StateSetter setState /*You can rename this!*/) {
-            return SingleChildScrollView(
-              child: Container(
-                height: size.height * 0.8,
-                // color: Colors.red,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10)),
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Container(
-                      height: size.height * 0.7,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'নাম',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: name,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'জন্ম তারিখ',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            Container(
-                                height: 40,
-                                width: size.width * 0.8,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5),
-                                      child: Text(
-                                        '$dobdate',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ),
-                                    IconButton(
-                                        icon: Icon(
-                                          Icons.date_range,
-                                          color: stella_red,
-                                        ),
-                                        onPressed: () =>
-                                            selectDObDate(context)),
-                                  ],
-                                )),
-                            Text(
-                              'বর্তমান ঠিকানা',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: presentAddress,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'স্থায়ী ঠিকানা',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: permanentAddress,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'জরুরী মোবাইল নম্বর',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: ergncyMobileNum,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'এন আই ডি',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: nid,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'শিক্ষাগত যোগ্যতা',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: education,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'কর্মক্ষেত্র',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: workarea,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'অভিজ্ঞতার বছর',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: expYear,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'স্ত্রীর নাম',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: spousename,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                            Text(
-                              'বিবাহ দিবস',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            Container(
-                                height: 40,
-                                width: size.width * 0.8,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5),
-                                      child: Text(
-                                        '$mrrgdate',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ),
-                                    IconButton(
-                                        icon: Icon(
-                                          Icons.date_range,
-                                          color: stella_red,
-                                        ),
-                                        onPressed: () =>
-                                            selectMRRGDate(context)),
-                                  ],
-                                )),
-                            Text(
-                              'সন্তানের সংখ্যা',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(
-                              height: 40,
-                              width: size.width * 0.8,
-                              child: CupertinoTextField(
-                                controller: chilldrens,
-                                keyboardType: TextInputType.name,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(color: Colors.black87),
-                                    borderRadius: BorderRadius.circular(5)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 2),
-                      child: Container(
-                          height: size.height * 0.07,
-                          child: InkWell(
-                              onTap: () async {
-                                var result =
-                                    await Connectivity().checkConnectivity();
-                                if (result == ConnectivityResult.none) {
-                                  print('no net');
-                                  dialaogsFucntion.noInternet(context);
-                                } else {
-                                  update();
-                                  Navigator.pop(context);
-                                  // if (usernamecontroller.text.isEmpty) {
-                                  //   snackbar(context, 'আপনার মোবাইল নাম্বার দিন!');
-                                  //   print('no');
-                                  // } else if (passwordcontroller.text.isEmpty) {
-                                  //   snackbar(context, 'আপনার পাসওয়ার্ড দিন!');
-                                  //   print('no');
-                                  // } else {
-                                  //   dataSubmit();
-                                  //   saveData();
-                                  // }
-                                }
-                              },
-                              child: Container(
-                                height: size.height * 0.05,
-                                width: size.width * 0.8,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: Colors.green,
-                                ),
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'সেভ করুন',
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 18),
-                                    ),
-                                  ),
-                                ),
-                              ))),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          });
-        });
+  goToSecondScreen() async {
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => EdirProfile(
+                  profileList: profileList,
+                  profilepic: profilepic,
+                )));
+    print(result);
+    userDetailsFunction();
+    getProPic();
   }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    final UserDetails userDetails =
-        Provider.of<UserDetails>(context, listen: false);
 
     return Scaffold(
       body: SafeArea(
@@ -695,29 +239,17 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               painter: CurvedContainer(),
                             ),
-                            InkWell(
-                              onTap: () {
-                                documentBottomSheet();
-                              },
-                              child: Hero(
-                                tag: 'proicon',
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 150),
-                                  child: Container(
-                                    height: size.height * 0.18,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.white, width: 5),
-                                        color: Colors.black87,
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                            image: profilepic == null
-                                                ? NetworkImage(img)
-                                                : NetworkImage(profilepic),
-                                            fit: BoxFit.contain)),
-                                  ),
-                                ),
+                            Hero(
+                              tag: 'proicon',
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 150),
+                                child: CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    radius: 50,
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                    )),
                               ),
                             ),
                           ],
@@ -1101,12 +633,631 @@ class _ProfilePageState extends State<ProfilePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.white,
         onPressed: () {
-          bottomsheetFunction();
+          goToSecondScreen();
+          //bottomsheetFunction();
         },
         child: Icon(
           Icons.edit,
           color: Colors.green,
         ),
+      ),
+    );
+  }
+}
+
+class EdirProfile extends StatefulWidget {
+  final List<ProfileDetails> profileList;
+  final profilepic;
+  const EdirProfile({Key key, this.profileList, this.profilepic})
+      : super(key: key);
+
+  @override
+  _EdirProfileState createState() => _EdirProfileState();
+}
+
+class _EdirProfileState extends State<EdirProfile> {
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      isloading = true;
+      profilepic = widget.profilepic;
+      profileList = widget.profileList;
+      profileList.forEach((element) {
+        setState(() {
+          name.text = element.name;
+          dobdate = element.dob;
+          presentAddress.text = element.presentAddress;
+          permanentAddress.text = element.permanetAddress;
+          ergncyMobileNum.text = element.emergencyContact;
+          nid.text = element.nid;
+          education.text = element.education;
+          workarea.text = element.workLocation;
+          expYear.text = element.yearsOfExp;
+          spousename.text = element.nameOfSpouse;
+          mrrgdate = element.marraigeDay;
+          chilldrens.text = element.noOfChild;
+        });
+      });
+    });
+  }
+
+  bool isloading = false;
+  List<ProfileDetails> profileList = [];
+  var result;
+  DateTime dateTimeTo = DateTime.now();
+  var dobdate;
+  var mrrgdate;
+  File imageFile;
+  String base64image;
+  File tempImage;
+  Uint8List bytesImage;
+  String imgString;
+  String imgg;
+  var profilepic;
+  final name = TextEditingController();
+  final dob = TextEditingController();
+  final presentAddress = TextEditingController();
+  final permanentAddress = TextEditingController();
+  final ergncyMobileNum = TextEditingController();
+  final nid = TextEditingController();
+  final education = TextEditingController();
+  final workarea = TextEditingController();
+  final expYear = TextEditingController();
+  final spousename = TextEditingController();
+  final marriageday = TextEditingController();
+  final chilldrens = TextEditingController();
+
+  documentBottomSheet() async {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.grey[300],
+        isScrollControlled: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+        ),
+        builder: (BuildContext context) {
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                IconButton(
+                  onPressed: () {
+                    pickImage(ImageSource.camera);
+                  },
+                  icon: Icon(
+                    Icons.photo_camera,
+                    color: Colors.black,
+                  ),
+                  iconSize: 40,
+                ),
+                IconButton(
+                  onPressed: () {
+                    pickImage(ImageSource.gallery);
+                  },
+                  icon: Icon(Icons.photo, color: Colors.black),
+                  iconSize: 40,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future pickImage(ImageSource source) async {
+    final selectedImage = await ImagePicker.platform.getImage(
+        source: source,
+        imageQuality: 20,
+        preferredCameraDevice: CameraDevice.front);
+
+    try {
+      if (selectedImage != null) {
+        setState(() {
+          imageFile = File(selectedImage.path);
+
+          base64image = base64Encode(imageFile.readAsBytesSync());
+          Navigator.pop(context);
+        });
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+
+      print(e);
+    }
+  }
+
+  Future update() async {
+    final UserDetails userDetails =
+        Provider.of<UserDetails>(context, listen: false);
+    final DialaogsFucntion dialaogsFucntion =
+        Provider.of<DialaogsFucntion>(context, listen: false);
+    uploadPic();
+    dialaogsFucntion.waitDialog(context);
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('http://49.0.41.34/AKG/PLUMBER/registration.php'),
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": '1101', //userDetails.userId, //'1101',
+              "name": name.text,
+              "phone_no": '01712132313',
+              "DOB": dobdate,
+              "emgency_contract_no": ergncyMobileNum.text,
+              "nid": nid.text,
+              "present_address": presentAddress.text,
+              "permanent_address": permanentAddress.text,
+              "work_location": workarea.text,
+              "years_of_exepeience": expYear.text,
+              "name_of_the_spouse": spousename.text,
+              "no_of_child": chilldrens.text,
+              "marriage_day": mrrgdate,
+              "education": education.text,
+            },
+          )
+          .timeout(Duration(seconds: 25))
+          .catchError((error) {
+            print(error);
+          });
+      result = json.decode(response.body);
+      print('feedback: $result');
+      if (result['success'] == 1) {
+        Navigator.pop(context);
+        //Navigator.pop(context);
+
+        setState(() {
+          userDetails.dataUserName(name.text);
+          isloading = true;
+        });
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+
+      print(e);
+    }
+    // var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/registration.php');
+  }
+
+  Future getProPic() async {
+    final UserDetails userDetails =
+        Provider.of<UserDetails>(context, listen: false);
+    // final DialaogsFucntion dialaogsFucntion =
+    //     Provider.of<DialaogsFucntion>(context, listen: false);image_show
+    //
+    try {
+      setState(() {
+        var porpic =
+            'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
+        imglink = porpic;
+        print(imglink);
+      });
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      print(e);
+    }
+  }
+
+  Future uploadPic() async {
+    final DialaogsFucntion dialaogsFucntion =
+        Provider.of<DialaogsFucntion>(context, listen: false);
+    final UserDetails userDetails =
+        Provider.of<UserDetails>(context, listen: false);
+    dialaogsFucntion.waitDialog(context);
+    var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/image_upload.php');
+    try {
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": userDetails.userId, //'1101'
+              "image": base64image
+            },
+          )
+          .timeout(Duration(seconds: 25))
+          .catchError((error) {
+            print(error);
+          });
+      result = json.decode(response.body);
+
+      if (result != null) {
+        Navigator.pop(context);
+        Future.delayed(Duration.zero, () {
+          this.getProPic();
+        });
+        print('ff $result');
+        print('updated');
+      } else
+        print('not updated');
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+
+      print(e);
+    }
+  }
+
+  Future selectDObDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: dateTimeTo,
+        firstDate: DateTime(1950),
+        lastDate: DateTime(3000),
+        builder: (BuildContext context, Widget child) {
+          return Theme(
+            data: ThemeData.dark().copyWith(
+              colorScheme: ColorScheme.dark(
+                primary: Colors.black87,
+                onPrimary: Colors.white,
+                surface: stella_red,
+                onSurface: Colors.black87,
+              ),
+              dialogBackgroundColor: Colors.white,
+            ),
+            child: child,
+          );
+        });
+    if (picked != null) {
+      setState(() {
+        dateTimeTo = picked;
+        dobdate = "${dateTimeTo.day}/${dateTimeTo.month}/${dateTimeTo.year}";
+        print('dobdate $dobdate');
+      });
+    }
+  }
+
+  Future selectMRRGDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: dateTimeTo,
+        firstDate: DateTime(1950),
+        lastDate: DateTime(3000),
+        builder: (BuildContext context, Widget child) {
+          return Theme(
+            data: ThemeData.dark().copyWith(
+              colorScheme: ColorScheme.dark(
+                primary: Colors.black87,
+                onPrimary: Colors.white,
+                surface: stella_red,
+                onSurface: Colors.black87,
+              ),
+              dialogBackgroundColor: Colors.white,
+            ),
+            child: child,
+          );
+        });
+    if (picked != null) {
+      setState(() {
+        dateTimeTo = picked;
+        mrrgdate = "${dateTimeTo.day}/${dateTimeTo.month}/${dateTimeTo.year}";
+
+        print('mrrgdate $mrrgdate');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Container(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Padding(
+                  //   padding: const EdgeInsets.symmetric(vertical: 20),
+                  //   child: InkWell(
+                  //     onTap: () => documentBottomSheet(),
+                  //     child: CircleAvatar(
+                  //         backgroundColor: Colors.white,
+                  //         radius: 50,
+                  //         child: const Icon(
+                  //           Icons.person,
+                  //           size: 50,
+                  //         )),
+                  //   ),
+                  // ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'নাম',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: name,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'জন্ম তারিখ',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  Container(
+                      height: 40,
+                      width: size.width * 1,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            child: Text(
+                              '$dobdate',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                          IconButton(
+                              icon: Icon(
+                                Icons.date_range,
+                                color: stella_red,
+                              ),
+                              onPressed: () => selectDObDate(context)),
+                        ],
+                      )),
+                  S10,
+                  Text(
+                    'বর্তমান ঠিকানা',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: presentAddress,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'স্থায়ী ঠিকানা',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: permanentAddress,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'জরুরী মোবাইল নম্বর',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: ergncyMobileNum,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  // SizedBox(
+                  //   height: 5,
+                  // ),
+                  // Text(
+                  //   'এন আই ডি',
+                  //   style: TextStyle(fontSize: 18),
+                  // ),
+                  // SizedBox(
+                  //   height: 5,
+                  // ),
+                  // SizedBox(
+                  //   height: 40,
+                  //   width: size.width * 0.8,
+                  //   child: CupertinoTextField(
+                  //     controller: nid,
+                  //     keyboardType: TextInputType.name,
+                  //     textAlignVertical: TextAlignVertical.center,
+                  //     decoration: BoxDecoration(
+                  //         color: Colors.white,
+                  //         border: Border.all(color: Colors.black87),
+                  //         borderRadius: BorderRadius.circular(5)),
+                  //   ),
+                  // ),
+                  S10,
+                  Text(
+                    'শিক্ষাগত যোগ্যতা',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: education,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'কর্মক্ষেত্র',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: workarea,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'অভিজ্ঞতার বছর',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: expYear,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'স্ত্রীর নাম',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: spousename,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                  Text(
+                    'বিবাহ দিবস',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  Container(
+                      height: 40,
+                      width: size.width * 1,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            child: Text(
+                              '$mrrgdate',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                          IconButton(
+                              icon: Icon(
+                                Icons.date_range,
+                                color: stella_red,
+                              ),
+                              onPressed: () => selectMRRGDate(context)),
+                        ],
+                      )),
+                  S10,
+                  Text(
+                    'সন্তানের সংখ্যা',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  SizedBox(
+                    height: 40,
+                    width: size.width * 1,
+                    child: CupertinoTextField(
+                      controller: chilldrens,
+                      keyboardType: TextInputType.name,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black87),
+                          borderRadius: BorderRadius.circular(5)),
+                    ),
+                  ),
+                  S10,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              CustomBtnRound(
+                press: () => Navigator.pop(context),
+                text: 'Back',
+                color: Colors.blue,
+              ),
+              CustomBtn(
+                press: () => update(),
+                text: 'Save',
+                color: Colors.transparent,
+                textcolor: Colors.green,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

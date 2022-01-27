@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:plumber_app/components/color.dart';
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/dialogs.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:plumber_app/screens/barcode_scan_page.dart';
@@ -20,30 +23,83 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
-    final UserDetails userDetails =
-        Provider.of<UserDetails>(context, listen: false);
     super.initState();
-    //getProPic();
-    porpic =
-        'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
+    Future.delayed(Duration.zero, () {
+      this.getProPic();
+    });
   }
 
   var porpic;
+
   Future getProPic() async {
     final UserDetails userDetails =
         Provider.of<UserDetails>(context, listen: false);
     // final DialaogsFucntion dialaogsFucntion =
     //     Provider.of<DialaogsFucntion>(context, listen: false);image_show
     //
-    var url =
-        Uri.parse('http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=1101');
-    final response =
-        await http.get(url).timeout(Duration(seconds: 25)).catchError((error) {
-      print(error);
-    });
-    setState(() {
-      porpic = json.decode(response.body);
-    });
+    try {
+      setState(() {
+        porpic =
+            'http://49.0.41.34/AKG/PLUMBER/image_show.php?user_id=${userDetails.userId}';
+        imglink = porpic;
+      });
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      print(e);
+    }
+  }
+
+  goToSecondScreen() async {
+    var result = await Navigator.push(
+        context, MaterialPageRoute(builder: (_) => ProfilePage()));
+    print(result);
+    userDetailsFunction();
+    if (result == null) {
+      getProPic();
+    }
+  }
+
+  Future userDetailsFunction() async {
+    final UserDetails userDetails =
+        Provider.of<UserDetails>(context, listen: false);
+
+    // final DialaogsFucntion dialaogsFucntion =
+    //     Provider.of<DialaogsFucntion>(context, listen: false);
+    try {
+      var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/plumber_details.php');
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": userDetails.userId //'1101'
+            },
+          )
+          .timeout(Duration(seconds: 25))
+          .catchError((error) {
+            print(error);
+          });
+      var result = json.decode(response.body);
+      print(result);
+
+      if (result['plumber details'] != null) {
+        setState(() {
+          List l = result['plumber details'];
+          l.forEach((element) {
+            setState(() {
+              print(element['NAME']);
+            });
+          });
+        });
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+      print(e);
+    }
   }
 
   @override
@@ -82,32 +138,36 @@ class _DashboardState extends State<Dashboard> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              img == null
-                                  ? Hero(
-                                      tag: 'proicon',
-                                      child: Icon(
-                                        Icons.account_circle,
-                                        color: Colors.white,
-                                        size: size.height * 0.15,
-                                      ),
-                                    )
-                                  : Hero(
-                                      tag: 'proicon',
-                                      child: Container(
-                                        height: size.height * 0.15,
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.white, width: 5),
-                                            color: Colors.black87,
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(
-                                                image: porpic == null
-                                                    ? NetworkImage(img)
-                                                    : NetworkImage(porpic),
-                                                fit: BoxFit.contain)),
-                                      ),
-                                    ),
+                              Hero(
+                                tag: 'proicon',
+                                child: CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    radius: 50,
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                    )),
+
+                                //  Container(
+                                //   height: size.height * 0.15,
+                                //   width: double.infinity,
+                                //   decoration: BoxDecoration(
+                                //       border: Border.all(
+                                //           color: Colors.white, width: 5),
+                                //       color: Colors.black87,
+                                //       shape: BoxShape.circle,
+                                //       image: DecorationImage(
+                                //           image: imglink == null
+                                //               ? CircleAvatar(
+                                //                   radius: 50,
+                                //                   child: const Icon(
+                                //                     Icons.person,
+                                //                     size: 50,
+                                //                   ))
+                                //               : NetworkImage(imglink),
+                                //           fit: BoxFit.contain)),
+                                // ),
+                              ),
                               userDetails.userId == null
                                   ? Text('id',
                                       style: TextStyle(

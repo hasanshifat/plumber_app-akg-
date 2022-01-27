@@ -132,11 +132,22 @@ class DialaogsFucntion extends ChangeNotifier {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Text('সতর্কীকরণ বার্তা',
+                    overflow: TextOverflow.clip,
+                    style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                        decoration: TextDecoration.none)),
+                SizedBox(
+                  height: 10,
+                ),
                 Text(msg,
                     overflow: TextOverflow.clip,
                     style: TextStyle(
                         color: Colors.black,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
                         decoration: TextDecoration.none)),
@@ -160,6 +171,27 @@ class DialaogsFucntion extends ChangeNotifier {
         );
       },
     );
+  }
+
+  Future waitDialog(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return showDialog(
+        context: context,
+        builder: (_) => Center(
+
+                // Aligns the container to center
+                child: Container(
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(5.0))),
+              // A simplified version of dialog.
+              width: size.height * .15,
+              height: size.height * .15,
+
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )));
   }
 
   Future exitDialog(BuildContext context) async {

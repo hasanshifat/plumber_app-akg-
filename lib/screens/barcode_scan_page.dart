@@ -7,6 +7,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:plumber_app/components/color.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:http/http.dart' as http;
+import 'package:plumber_app/components/custom_functions.dart';
 import 'package:plumber_app/provider/dialog/dialogs.dart';
 import 'package:plumber_app/provider/dialog/user_details.dart';
 import 'package:provider/provider.dart';
@@ -50,35 +51,43 @@ class _BarCodeScanPageState extends State<BarCodeScanPage> {
     final DialaogsFucntion dialaogsFucntion =
         Provider.of<DialaogsFucntion>(context, listen: false);
     var url = Uri.parse('http://49.0.41.34/AKG/PLUMBER/token_point.php');
-    final response = await http
-        .post(
-          url,
-          encoding: Encoding.getByName("utf-8"),
-          body: {
-            "user_id": userDetails.userId,
-            "token_id": scanBarcode,
-          },
-        )
-        .timeout(Duration(seconds: 25))
-        .catchError((error) {
-          print(error);
-        });
-    var result = json.decode(response.body);
+    try {
+      final response = await http
+          .post(
+            url,
+            encoding: Encoding.getByName("utf-8"),
+            body: {
+              "user_id": userDetails.userId,
+              "token_id": scanBarcode,
+            },
+          )
+          .timeout(Duration(seconds: 60))
+          .catchError((error) {
+            print(error);
+          });
+      var result = json.decode(response.body);
 
-    if (result['success'] == 1) {
-      setState(() {
-        isloading = false;
-        scanBarcode = 'Unknown';
-      });
-      dialaogsFucntion.msgDialog(context, 'ok');
-      print(result);
-    } else if (result['success'] == 0) {
-      setState(() {
-        isloading = false;
-        scanBarcode = 'Unknown';
-      });
-      dialaogsFucntion.msgDialog(context, result['msg']);
-      print(result);
+      if (result['success'] == 1) {
+        setState(() {
+          isloading = false;
+          scanBarcode = 'Unknown';
+        });
+        dialaogsFucntion.msgDialog(context, 'ok');
+        print(result);
+      } else if (result['success'] == 0) {
+        setState(() {
+          isloading = false;
+          scanBarcode = 'Unknown';
+        });
+        dialaogsFucntion.msgDialog(context, result['msg']);
+        print(result);
+      }
+    } catch (e) {
+      //dialaogsFucntion.errorDialog(context);
+      CustomFunctions.snackbar(
+          context, 'কিছু ভুল হয়েছে দয়া করে আবার চেষ্টা করুন!');
+
+      print(e);
     }
   }
 
